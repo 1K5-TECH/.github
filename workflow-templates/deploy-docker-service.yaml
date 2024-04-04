@@ -1,4 +1,4 @@
-name: 🚀 Build & Deploy
+name: 🚀 Deploy Workloads
 
 on:
   pull_request:
@@ -15,10 +15,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  PROJECT_BASE: 'TODO:YOUR_PROJECT_BASE' # e.g. einsk5g-playground or einsk5g-os
-  DEV_SERVICE_URL: 'TODO:https://YOUR_SERVICE_URL'
-  STG_SERVICE_URL: 'TODO:https://YOUR_SERVICE_URL'
-  PRD_SERVICE_URL: 'TODO:https://YOUR_SERVICE_URL'
+  PROJECT_BASE: 'TODO:YOUR_PROJECT_BASE' # # a google cloud project without the env suffix
 
 jobs:
   # TODO: add more pre-build steps if needed
@@ -29,8 +26,6 @@ jobs:
     name: 📦 Release
     runs-on: ubuntu-latest
     if: ${{ github.actor != 'dependabot[bot]' }}
-    needs:
-      - test
 
     permissions:
       contents: write
@@ -60,7 +55,6 @@ jobs:
     runs-on: ubuntu-latest
     needs:
       - release # TODO: remove if you don't want to use release-please
-      - test
 
     permissions:
       contents: read
@@ -79,9 +73,12 @@ jobs:
         with:
           version: ${{ needs.release.outputs.version }}
 
-  deploy_dev:
+  deploy:
     name: 🚀 ${{ matrix.environment }}
     runs-on: ubuntu-latest
+    needs:
+      - docker
+      - release # TODO: remove if you don't want to use release-please
 
     permissions:
       contents: read
@@ -90,17 +87,18 @@ jobs:
 
     environment:
       name: ${{ matrix.environment }}
-      url: ${{ env.DEV_SERVICE_URL }}
 
     strategy:
       matrix:
         # TODO: add your services here
-        service: [service1, service2, service3] # e.g. solandeo-gateway - this must match the folder name under 1k5/deployment-configs/
+        service: [service1, service2, service3] # this must match the folder name under 1k5/deployment-configs/
         environment: [development, staging, production]
 
     steps:
       - name: 🚀 Deploy Cloud Run Service (${{ matrix.service }})
         uses: 1K5-TECH/gha-deploy-cloudrun-revision@v3
+        # TODO: remove this if you want to contiously deploy to all environments
+        if: ${{ matrix.environment == 'development' || needs.release.outputs.released == 'true'}}
         with:
           service: ${{ matrix.service }}
           image: ${{ needs.docker.outputs.image }}
