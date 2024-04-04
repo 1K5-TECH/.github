@@ -1,0 +1,11 @@
+{
+    "name": "Deploy Docker Workload to Cloud Run",
+    "description": "1KOMMA5° workflow to deploy a Docker workload to Google Cloud Run.",
+    "iconName": "octicon rocket",
+    "categories": [
+        "Docker"
+    ],
+    "filePatterns": [
+        "^Dockerfile"
+    ]
+}

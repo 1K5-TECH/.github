@@ -1,0 +1,110 @@
+name: 🚀 Build & Deploy
+
+on:
+  pull_request:
+    branches:
+      - 'main'
+  push:
+    branches:
+      - 'main'
+  workflow_dispatch:
+
+# cancel runs from the same branch if a run is in progress
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PROJECT_BASE: 'TODO:YOUR_PROJECT_BASE' # e.g. einsk5g-playground or einsk5g-os
+  DEV_SERVICE_URL: 'TODO:https://YOUR_SERVICE_URL'
+  STG_SERVICE_URL: 'TODO:https://YOUR_SERVICE_URL'
+  PRD_SERVICE_URL: 'TODO:https://YOUR_SERVICE_URL'
+
+jobs:
+  # TODO: add more pre-build steps if needed
+
+  # TODO: remove if you don't want to use release-please
+  # TODO: otherwise add a release-please-config.json in the root of your repository
+  release:
+    name: 📦 Release
+    runs-on: ubuntu-latest
+    if: ${{ github.actor != 'dependabot[bot]' }}
+    needs:
+      - test
+
+    permissions:
+      contents: write
+      pull-requests: write
+
+    outputs:
+      version: ${{ steps.release.outputs.version }}
+      sha: ${{ steps.release.outputs.sha }}
+      released: ${{ steps.release.outputs.release_created }}
+
+    steps:
+      - id: get_app_token
+        name: 🔑 Get GitHub App Token
+        uses: peter-murray/workflow-application-token-action@v3
+        with:
+          application_id: ${{ secrets.CI_BOT_ID }}
+          application_private_key: ${{ secrets.CI_BOT_PEM }}
+
+      - uses: google-github-actions/release-please-action@v4
+        name: 📦 Release
+        id: release
+        with:
+          token: ${{ steps.get_app_token.outputs.token }}
+
+  docker:
+    name: 🐳 Build & Push Docker Image
+    runs-on: ubuntu-latest
+    needs:
+      - release # TODO: remove if you don't want to use release-please
+      - test
+
+    permissions:
+      contents: read
+      id-token: write
+
+    outputs:
+      image: ${{ steps.build-push.outputs.image }}
+
+    steps:
+      - name: 🔍 Checkout
+        uses: actions/checkout@v4
+
+      - name: 🐳 Build & Push Docker Image
+        uses: 1k5-tech/gha-docker-build-push@v3
+        id: build-push
+        with:
+          version: ${{ needs.release.outputs.version }}
+
+  deploy_dev:
+    name: 🚀 ${{ matrix.environment }}
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      pull-requests: write
+      id-token: write
+
+    environment:
+      name: ${{ matrix.environment }}
+      url: ${{ env.DEV_SERVICE_URL }}
+
+    strategy:
+      matrix:
+        # TODO: add your services here
+        service: [service1, service2, service3] # e.g. solandeo-gateway - this must match the folder name under 1k5/deployment-configs/
+        environment: [development, staging, production]
+
+    steps:
+      - name: 🚀 Deploy Cloud Run Service (${{ matrix.service }})
+        uses: 1K5-TECH/gha-deploy-cloudrun-revision@v3
+        with:
+          service: ${{ matrix.service }}
+          image: ${{ needs.docker.outputs.image }}
+          project_base: ${{ env.PROJECT_BASE }}
+          environment: ${{ matrix.environment }}
+          deploy_using_helm: true
+          deploy_using_terraform: false
