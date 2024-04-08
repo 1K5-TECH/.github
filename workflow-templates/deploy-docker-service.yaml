@@ -84,16 +84,18 @@ jobs:
 
     environment:
       name: development
-      # url: https://your-service-url.dev.1komma5grad.com
+      url: ${{ steps.deploy.outputs.logs_url }}
 
     strategy:
       matrix:
         # TODO: add your services here
-        service: [your-service] # this must match the folder name under 1k5/deployment-configs/
+        service: 
+          - your-service # this must match the folder name under 1k5/deployment-configs/
 
     steps:
       - name: 🚀 Deploy (${{ matrix.service }})
         uses: 1K5-TECH/gha-deploy-cloudrun-revision@v3
+        id: deploy
         with:
           service: ${{ matrix.service }}
           image: ${{ needs.docker.outputs.image }}
@@ -119,16 +121,18 @@ jobs:
 
     environment:
       name: staging
-      # url: https://your-service-url.dev.1komma5grad.com
+      url: ${{ steps.deploy.outputs.logs_url }}
 
     strategy:
       matrix:
         # TODO: add your services here
-        service: [your-service] # this must match the folder name under 1k5/deployment-configs/
+        service: 
+          - your-service # this must match the folder name under 1k5/deployment-configs/
 
     steps:
       - name: 🚀 Deploy (${{ matrix.service }})
         uses: 1K5-TECH/gha-deploy-cloudrun-revision@v3
+        id: deploy
         with:
           service: ${{ matrix.service }}
           image: ${{ needs.docker.outputs.image }}
@@ -155,16 +159,18 @@ jobs:
 
     environment:
       name: production
-      # url: https://your-service-url.dev.1komma5grad.com
+      url: ${{ steps.deploy.outputs.logs_url }}
 
     strategy:
       matrix:
         # TODO: add your services here
-        service: [your-service] # this must match the folder name under 1k5/deployment-configs/
+        service: 
+          - your-service # this must match the folder name under 1k5/deployment-configs/
 
     steps:
       - name: 🚀 Deploy (${{ matrix.service }})
         uses: 1K5-TECH/gha-deploy-cloudrun-revision@v3
+        id: deploy
         with:
           service: ${{ matrix.service }}
           image: ${{ needs.docker.outputs.image }}
