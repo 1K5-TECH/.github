@@ -1,5 +1,5 @@
 {
     "name": "Automatically merge dependabot PRs",
     "description": "1KOMMA5° workflow to merge dependabot PRs if the version change is only on patch-level",
-    "iconName": "octicon package-dependencies",
+    "iconName": "octicon package-dependencies"
 }
