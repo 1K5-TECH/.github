@@ -65,7 +65,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: 🐳 Build & Push Docker Image
-        uses: 1k5-tech/gha-docker-build-push@v3
+        uses: 1k5-tech/gha-docker-build-push@v4
         id: build-push
         with:
           version: ${{ needs.release.outputs.version }}
@@ -94,7 +94,7 @@ jobs:
 
     steps:
       - name: 🚀 Deploy (${{ matrix.service }})
-        uses: 1K5-TECH/gha-deploy-cloudrun-revision@v3
+        uses: 1K5-TECH/gha-deploy-cloudrun-revision@v4
         id: deploy
         with:
           service: ${{ matrix.service }}
@@ -131,7 +131,7 @@ jobs:
 
     steps:
       - name: 🚀 Deploy (${{ matrix.service }})
-        uses: 1K5-TECH/gha-deploy-cloudrun-revision@v3
+        uses: 1K5-TECH/gha-deploy-cloudrun-revision@v4
         id: deploy
         with:
           service: ${{ matrix.service }}
@@ -169,7 +169,7 @@ jobs:
 
     steps:
       - name: 🚀 Deploy (${{ matrix.service }})
-        uses: 1K5-TECH/gha-deploy-cloudrun-revision@v3
+        uses: 1K5-TECH/gha-deploy-cloudrun-revision@v4
         id: deploy
         with:
           service: ${{ matrix.service }}
